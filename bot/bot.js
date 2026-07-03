@@ -10,7 +10,12 @@
  *   ANTHROPIC_API_KEY - (optional, for LLM-humanized replies)
  */
 require("dotenv").config();
-const { Client, GatewayIntentBits, Partials } = require("discord.js");
+const {
+  Client,
+  GatewayIntentBits,
+  Partials,
+  Events,
+} = require("discord.js");
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:4000";
 const PREFIX = "!";
@@ -169,7 +174,7 @@ async function pollAlerts() {
 }
 setInterval(pollAlerts, 60_000); // check once a minute
 
-client.once("ready", () => {
+client.once(Events.ClientReady, (client) => {
   console.log(`OfficeQuest bot logged in as ${client.user.tag}`);
 });
 
