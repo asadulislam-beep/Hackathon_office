@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OfficeQuest — Live Dashboard</title>
+<style>
+  :root{
+    --green:#58CC02;
+    --green-dark:#4CAD02;
+    --blue:#1CB0F6;
+    --blue-dark:#1899D6;
+    --yellow:#FFC800;
+    --yellow-dark:#E6B400;
+    --red:#FF4B4B;
+    --red-dark:#E63E3E;
+    --purple:#CE82FF;
+    --ink:#3C3C3C;
+    --grey:#AFAFAF;
+    --bg:#F7F9FB;
+    --card:#FFFFFF;
+    --line:#E5E5E5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding:20px;
+  }
+  h1,h2,h3{margin:0;}
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand .badge{
+    width:44px;height:44px;
+    background:var(--green);
+    border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;
+    box-shadow:0 4px 0 var(--green-dark);
+  }
+  .brand h1{
+    font-size:22px;
+    font-weight:800;
+    letter-spacing:.3px;
+  }
+  .brand p{margin:0;font-size:12px;color:var(--grey);font-weight:600;}
+  .clock{
+    background:var(--card);
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:8px 16px;
+    font-weight:700;
+    font-size:14px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 4px rgba(88,204,2,.2);
+    animation:pulse 1.6s infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;} 50%{opacity:.4;}
+  }
+
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .stat-card{
+    background:var(--card);
+    border-radius:18px;
+    padding:16px 18px;
+    border:2px solid var(--line);
+    border-bottom:5px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-card.total{border-bottom-color:var(--blue-dark);}
+  .stat-card .label{font-size:12px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.5px;}
+  .stat-card .value{font-size:28px;font-weight:800;margin-top:4px;}
+  .stat-card .sub{font-size:12px;color:var(--grey);margin-top:2px;font-weight:600;}
+  .stat-card .icon{position:absolute;right:14px;top:14px;font-size:26px;opacity:.9;}
+
+  .layout{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:18px;
+  }
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--card);
+    border-radius:20px;
+    border:2px solid var(--line);
+    padding:18px;
+  }
+  .panel h2{
+    font-size:16px;
+    font-weight:800;
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .rooms{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:14px;
+  }
+  .room-card{
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+    background:#FBFCFE;
+  }
+  .room-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .room-head .name{font-weight:800;font-size:14px;}
+  .room-head .power-badge{
+    font-size:11px;font-weight:700;
+    background:var(--yellow);
+    color:#5B4600;
+    padding:3px 9px;
+    border-radius:10px;
+  }
+  .device-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .device{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px;
+    border-radius:12px;
+    background:#F0F2F5;
+    font-size:12px;
+    font-weight:700;
+    transition:.3s;
+  }
+  .device.on{
+    background:#E9FBD8;
+  }
+  .device .icon{
+    font-size:16px;
+    width:20px;
+    text-align:center;
+  }
+  .device.on.fan .icon{
+    animation:spin 1s linear infinite;
+  }
+  .device.on.light .icon{
+    filter:drop-shadow(0 0 6px #FFD64D);
+  }
+  @keyframes spin{ from{transform:rotate(0);} to{transform:rotate(360deg);} }
+  .device .state-dot{
+    width:8px;height:8px;border-radius:50%;
+    margin-left:auto;
+    background:var(--grey);
+  }
+  .device.on .state-dot{ background:var(--green); }
+
+  .power-summary{
+    margin-top:14px;
+  }
+  .bar-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+    font-size:12px;
+    font-weight:700;
+  }
+  .bar-row .rname{width:90px;flex-shrink:0;color:var(--ink);}
+  .bar-track{
+    flex:1;
+    height:12px;
+    background:#EEF1F4;
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--blue),var(--green));
+    border-radius:8px;
+    transition:width .5s ease;
+  }
+  .bar-row .wval{width:56px;text-align:right;color:var(--grey);}
+
+  .alerts{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:520px;
+    overflow-y:auto;
+  }
+  .alert-item{
+    border-radius:14px;
+    padding:10px 12px;
+    font-size:12px;
+    font-weight:600;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    border:2px solid transparent;
+  }
+  .alert-item.warn{
+    background:#FFF4E0;
+    border-color:#FFD98A;
+    color:#8A5A00;
+  }
+  .alert-item.danger{
+    background:#FFE7E7;
+    border-color:#FFB3B3;
+    color:#A31F1F;
+  }
+  .alert-item .emoji{font-size:16px;}
+  .alert-item .time{
+    display:block;
+    font-size:10px;
+    opacity:.7;
+    margin-top:2px;
+    font-weight:700;
+  }
+  .no-alerts{
+    text-align:center;
+    padding:30px 10px;
+    color:var(--grey);
+    font-weight:700;
+    font-size:13px;
+  }
+  .no-alerts .emoji{font-size:34px;display:block;margin-bottom:8px;}
+
+  .footer-note{
+    margin-top:18px;
+    text-align:center;
+    font-size:11px;
+    color:var(--grey);
+    font-weight:600;
+  }
+  .streak-pill{
+    background:var(--purple);
+    color:#fff;
+    border-radius:10px;
+    padding:3px 9px;
+    font-size:11px;
+    font-weight:700;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="badge">⚡</div>
+    <div>
+      <h1>OfficeQuest</h1>
+      <p>Live device &amp; power monitor</p>
+    </div>
+  </div>
+  <div class="clock">
+    <span class="dot"></span>
+    <span id="clockTime">--:--:--</span>
+    <span class="streak-pill" id="hoursBadge">Office Hours</span>
+  </div>
+</div>
+
+<div class="stats-row" id="statsRow"></div>
+
+<div class="layout">
+  <div class="panel">
+    <h2>🏢 Devices by Room</h2>
+    <div class="rooms" id="roomsWrap"></div>
+    <div class="power-summary">
+      <h2 style="margin-top:18px;">🔋 Per-Room Power Draw</h2>
+      <div id="powerBars"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>🔔 Active Alerts</h2>
+    <div class="alerts" id="alertsWrap"></div>
+  </div>
+</div>
+
+<div class="footer-note">Live from backend (simulated device layer) — polls every 3s · Office hours 9 AM–5 PM · 18 devices across 3 rooms</div>
+
+<script>
+// ---------- Live backend connection ----------
+// The dashboard no longer invents its own state. It polls the same
+// /api/status endpoint the Discord bot reads from, so both surfaces are
+// guaranteed to show the same reality.
+const BACKEND_URL = "http://localhost:4000";
+const POLL_MS = 3000; // matches the backend's own device-drift interval
+
+const ROOMS = ["Drawing Room", "Work Room 1", "Work Room 2"];
+const FAN_W = 60, LIGHT_W = 15;
+
+let devices = [];
+let officeHoursFromServer = true;
+let alertsFromServer = [];
+let connectionOk = true;
+
+function fmtTime(d){
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function fmtShort(ts){
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+// The backend already computes office-hours, alerts, and power totals —
+// we just render what it sends. Alert objects use `message`; the local
+// alert-card renderer expects `text`, so map that field on the way in.
+function normalizeAlert(a){
+  return {
+    level: a.level,
+    emoji: a.level === "danger" ? "⚠️" : "⏱️",
+    text: a.message,
+    ts: a.ts,
+  };
+}
+
+async function fetchStatus(){
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/status`);
+    if(!res.ok) throw new Error(`Backend responded ${res.status}`);
+    const status = await res.json();
+    devices = status.devices;
+    officeHoursFromServer = status.officeHours;
+    alertsFromServer = (status.alerts || []).map(normalizeAlert);
+    connectionOk = true;
+  } catch(err){
+    console.error("Failed to reach backend:", err.message);
+    connectionOk = false;
+  }
+  render();
+}
+
+function render(){
+  const now = new Date();
+  document.getElementById("clockTime").textContent = fmtTime(now);
+  const officeHrs = officeHoursFromServer;
+  const hoursBadge = document.getElementById("hoursBadge");
+  hoursBadge.textContent = officeHrs ? "Office Hours" : "After Hours";
+  hoursBadge.style.background = officeHrs ? "var(--purple)" : "var(--red)";
+
+  // Nothing to render yet (first paint, before the initial fetch resolves)
+  // or the backend is unreachable — show a clear state instead of a blank
+  // or stale-looking dashboard.
+  if(devices.length === 0){
+    document.getElementById("statsRow").innerHTML = "";
+    document.getElementById("roomsWrap").innerHTML = `<div class="no-alerts"><span class="emoji">${connectionOk ? "⏳" : "🔌"}</span>${connectionOk ? "Connecting to backend…" : `Can't reach backend at ${BACKEND_URL}. Is server.js running?`}</div>`;
+    document.getElementById("powerBars").innerHTML = "";
+    document.getElementById("alertsWrap").innerHTML = "";
+    return;
+  }
+
+  // totals
+  const totalWatt = devices.filter(d=>d.on).reduce((s,d)=>s+d.watt,0);
+  const onCount = devices.filter(d=>d.on).length;
+  const estKwh = (totalWatt/1000 * ((now.getHours()+now.getMinutes()/60))).toFixed(1);
+
+  document.getElementById("statsRow").innerHTML = `
+    <div class="stat-card total">
+      <div class="icon">⚡</div>
+      <div class="label">Total Power Now</div>
+      <div class="value">${totalWatt} W</div>
+      <div class="sub">${onCount} / ${devices.length} devices ON</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">📈</div>
+      <div class="label">Est. Usage Today</div>
+      <div class="value">${estKwh} kWh</div>
+      <div class="sub">Based on current draw</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">🌀</div>
+      <div class="label">Fans Running</div>
+      <div class="value">${devices.filter(d=>d.type==='fan'&&d.on).length} / 6</div>
+      <div class="sub">${FAN_W}W each</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">💡</div>
+      <div class="label">Lights On</div>
+      <div class="value">${devices.filter(d=>d.type==='light'&&d.on).length} / 9</div>
+      <div class="sub">${LIGHT_W}W each</div>
+    </div>
+  `;
+
+  // rooms
+  const roomsWrap = document.getElementById("roomsWrap");
+  roomsWrap.innerHTML = ROOMS.map(room=>{
+    const roomDevices = devices.filter(d=>d.room===room);
+    const roomWatt = roomDevices.filter(d=>d.on).reduce((s,d)=>s+d.watt,0);
+    const devicesHtml = roomDevices.map(d=>`
+      <div class="device ${d.type} ${d.on?'on':''}" title="Last changed ${fmtShort(d.lastChanged)}">
+        <span class="icon">${d.type==='fan' ? '🌀' : '💡'}</span>
+        <span>${d.label}</span>
+        <span class="state-dot"></span>
+      </div>
+    `).join("");
+    return `
+      <div class="room-card">
+        <div class="room-head">
+          <span class="name">${room}</span>
+          <span class="power-badge">${roomWatt} W</span>
+        </div>
+        <div class="device-grid">${devicesHtml}</div>
+      </div>
+    `;
+  }).join("");
+
+  // power bars
+  const maxRoomWatt = 2*FAN_W + 3*LIGHT_W; // max possible per room
+  document.getElementById("powerBars").innerHTML = ROOMS.map(room=>{
+    const roomDevices = devices.filter(d=>d.room===room);
+    const roomWatt = roomDevices.filter(d=>d.on).reduce((s,d)=>s+d.watt,0);
+    const pct = Math.round((roomWatt/maxRoomWatt)*100);
+    return `
+      <div class="bar-row">
+        <span class="rname">${room}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <span class="wval">${roomWatt}W</span>
+      </div>
+    `;
+  }).join("");
+
+  // alerts
+  const alerts = alertsFromServer;
+  const alertsWrap = document.getElementById("alertsWrap");
+  if(alerts.length===0){
+    alertsWrap.innerHTML = `<div class="no-alerts"><span class="emoji">✅</span>All clear — nothing looks unusual right now.</div>`;
+  } else {
+    alertsWrap.innerHTML = alerts.map(a=>`
+      <div class="alert-item ${a.level}">
+        <span class="emoji">${a.emoji}</span>
+        <div>
+          ${a.text}
+          <span class="time">Flagged at ${fmtShort(a.ts)}</span>
+        </div>
+      </div>
+    `).join("");
+  }
+}
+
+// Initial paint (shows the "connecting…" state), then poll the shared
+// backend on the same cadence it mutates device state internally.
+render();
+fetchStatus();
+setInterval(fetchStatus, POLL_MS);
+// Keep the clock ticking smoothly between polls without hitting the network.
+setInterval(render, 1000);
+</script>
+
+</body>
+</html>
